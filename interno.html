@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Obras - Administração</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        .config-panel {
+            background: #fff8e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-controls .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            background: var(--success);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .notification.error {
+            background: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Controle de Obras - Administração</h1>
+            <p>Área de acesso para consulta e exportação de dados</p>
+        </header>
+        
+        <div class="content">
+            <div class="config-panel">
+                <h2>Configuração do Sistema</h2>
+                <div class="form-group">
+                    <label for="scriptUrl">URL do Google Apps Script:</label>
+                    <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec" readonly>
+                </div>
+            </div>
+            
+            <h2>Consultar Obras e Materiais</h2>
+            
+            <div class="filter-controls">
+                <div class="form-group">
+                    <label for="filterEndereco">Filtrar por Endereço:</label>
+                    <input type="text" id="filterEndereco" placeholder="Digite o endereço">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filterTecnico">Filtrar por Técnico:</label>
+                    <input type="text" id="filterTecnico" placeholder="Digite o nome do técnico">
+                </div>
+                
+                <div class="form-group">
+                    <label for="filterData">Filtrar por Data:</label>
+                    <input type="date" id="filterData">
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="searchBtn">
+                <span id="searchSpinner" class="loading" style="display: none;"></span>
+                <span id="searchText">Buscar Obras</span>
+            </button>
+            
+            <button class="btn btn-success" id="exportBtn" style="display: none;">Exportar para Excel</button>
+            
+            <div id="results" style="margin-top: 30px; display: none;">
+                <h3>Resultados da Busca</h3>
+                <table class="data-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Endereço</th>
+                            <th>Número</th>
+                            <th>Técnico</th>
+                            <th>Tipo de Obra</th>
+                            <th>Data</th>
+                            <th>Materiais</th>
+                            <th>Quantidade Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="materiaisDetails" style="margin-top: 30px; display: none;">
+                <h3>Materiais Utilizados</h3>
+                <table class="data-table" id="materiaisTable">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Material</th>
+                            <th>Unidade</th>
+                            <th>Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materiaisBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <!-- SheetJS library for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        let obrasData = [];
+        let currentObra = null;
+        
+        function initApp() {
+            document.getElementById('searchBtn').addEventListener('click', searchObras);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+        }
+        
+        async function searchObras() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            const endereco = document.getElementById('filterEndereco').value;
+            const tecnico = document.getElementById('filterTecnico').value;
+            const dataFiltro = document.getElementById('filterData').value;
+            
+            // Mostrar spinner
+            document.getElementById('searchSpinner').style.display = 'inline-block';
+            document.getElementById('searchText').textContent = 'Buscando...';
+            
+            try {
+                let url = `${scriptUrl}?action=getObras`;
+                
+                if (endereco) url += `&endereco=${encodeURIComponent(endereco)}`;
+                if (tecnico) url += `&tecnico=${encodeURIComponent(tecnico)}`;
+                if (dataFiltro) url += `&data=${dataFiltro}`;
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar obras');
+                }
+                
+                const resultData = await response.json();
+                
+                if (resultData.obras && Array.isArray(resultData.obras)) {
+                    obrasData = resultData.obras;
+                    displayResults(obrasData);
+                    document.getElementById('exportBtn').style.display = 'inline-block';
+                    showNotification(`Encontradas ${obrasData.length} obras`);
+                } else {
+                    throw new Error('Formato de dados inválido');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar obras:', error);
+                showNotification('Erro ao buscar obras. Verifique a conexão.', true);
+            } finally {
+                // Ocultar spinner
+                document.getElementById('searchSpinner').style.display = 'none';
+                document.getElementById('searchText').textContent = 'Buscar Obras';
+            }
+        }
+        
+        function displayResults(obras) {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+            
+            if (obras.length === 0) {
+                document.getElementById('results').style.display = 'none';
+                return;
+            }
+            
+            obras.forEach(obra => {
+                const row = document.createElement('tr');
+                
+                // Calcular quantidade total de materiais
+                const totalMateriais = obra.materiais.reduce((total, material) => total + (material.Quantidade || 0), 0);
+                
+                row.innerHTML = `
+                    <td>${obra.Endereço}</td>
+                    <td>${obra.Número}</td>
+                    <td>${obra.Técnico}</td>
+                    <td>${obra.Tipo_Obra || ''}</td>
+                    <td>${new Date(obra.Data).toLocaleDateString('pt-BR')}</td>
+                    <td>${obra.materiais.length} materiais</td>
+                    <td>${totalMateriais} unidades</td>
+                `;
+                
+                row.style.cursor = 'pointer';
+                row.addEventListener('click', () => showMateriaisDetails(obra));
+                
+                resultsBody.appendChild(row);
+            });
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('materiaisDetails').style.display = 'none';
+        }
+        
+        function showMateriaisDetails(obra) {
+            currentObra = obra;
+            const materiaisBody = document.getElementById('materiaisBody');
+            materiaisBody.innerHTML = '';
+            
+            obra.materiais.forEach(material => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${material.SKU}</td>
+                    <td>${material.Descrição}</td>
+                    <td>${material.Unidade}</td>
+                    <td>${material.Quantidade}</td>
+                `;
+                materiaisBody.appendChild(row);
+            });
+            
+            document.getElementById('materiaisDetails').style.display = 'block';
+        }
+        
+        function exportToExcel() {
+            if (obrasData.length === 0) {
+                showNotification('Nenhum dado para exportar', true);
+                return;
+            }
+            
+            // Preparar dados para exportação
+            const data = [];
+            
+            // Cabeçalho
+            data.push(['Endereço', 'Número', 'Complemento', 'Técnico', 'Tipo Obra', 'Observações', 'ID Obra', 'Data', 'SKU Material', 'Material', 'Unidade', 'Quantidade']);
+            
+            // Dados
+            obrasData.forEach(obra => {
+                if (obra.materiais && obra.materiais.length > 0) {
+                    obra.materiais.forEach(material => {
+                        data.push([
+                            obra.Endereço,
+                            obra.Número,
+                            obra.Complemento || '',
+                            obra.Técnico,
+                            obra.Tipo_Obra || '',
+                            obra.Observacoes || '',
+                            obra['ID Obra'] || '',
+                            new Date(obra.Data).toLocaleDateString('pt-BR'),
+                            material.SKU,
+                            material.Descrição,
+                            material.Unidade,
+                            material.Quantidade
+                        ]);
+                    });
+                } else {
+                    data.push([
+                        obra.Endereço,
+                        obra.Número,
+                        obra.Complemento || '',
+                        obra.Técnico,
+                        obra.Tipo_Obra || '',
+                        obra.Observacoes || '',
+                        obra['ID Obra'] || '',
+                        new Date(obra.Data).toLocaleDateString('pt-BR'),
+                        '',
+                        'Nenhum material cadastrado',
+                        '',
+                        ''
+                    ]);
+                }
+            });
+            
+            // Criar planilha
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Obras e Materiais");
+            
+            // Exportar
+            const fileName = `obras_materiais_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showNotification('Dados exportados com sucesso!');
+        }
+        
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification' + (isError ? ' error' : '');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Iniciar a aplicação quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

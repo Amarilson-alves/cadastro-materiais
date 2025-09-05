@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Obras - Técnicos</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --success: #2ecc71;
+            --warning: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .description {
+            font-size: 16px;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .material-search {
+            position: relative;
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .suggestion-code {
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: 10px;
+        }
+        
+        .material-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            background: white;
+        }
+        
+        .material-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .material-item:last-child {
+            border-bottom: none;
+        }
+        
+        .material-info {
+            flex: 1;
+        }
+        
+        .material-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .material-quantity {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            background: var(--success);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .notification.error {
+            background: var(--accent);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .config-panel {
+            background: #fff8e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .config-panel h3 {
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+        
+        .debug-info {
+            background: #f1f8e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Controle de Obras e Materiais - Técnicos</h1>
+            <p class="description">Sistema para registro de obras e materiais utilizados</p>
+        </header>
+        
+        <div class="content">
+            <div class="config-panel">
+                <h3>Configuração do Sistema</h3>
+                <div class="form-group">
+                    <label for="scriptUrl">URL do Google Apps Script:</label>
+                    <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec">
+                </div>
+                <button class="btn btn-primary" id="loadMaterials">
+                    <span id="loadSpinner" class="loading" style="display: none;"></span>
+                    <span id="loadText">Carregar Materiais</span>
+                </button>
+                <button class="btn btn-warning" id="testConnection">Testar Conexão</button>
+            </div>
+            
+            <div id="debugInfo" class="debug-info"></div>
+            
+            <h2>Dados da Obra</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tecnico">Nome Técnico:</label>
+                    <input type="text" id="tecnico" placeholder="Seu nome completo">
+                </div>
+                
+                <div class="form-group">
+                    <label for="idObra">ID da Obra (opcional):</label>
+                    <input type="text" id="idObra" placeholder="Ex: OBRA-2023-001">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="endereco" placeholder="Ex: Rua das Flores">
+                </div>
+                
+                <div class="form-group">
+                    <label for="numero">Número:</label>
+                    <input type="text" id="numero" placeholder="Ex: 123">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="complemento">Complemento (opcional):</label>
+                <input type="text" id="complemento" placeholder="Ex: Apt 101, Fundos, etc">
+            </div>
+            
+            <!-- NOVOS CAMPOS ADICIONADOS -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoObra">Tipo de Obra:</label>
+                    <select id="tipoObra" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="Alivio">Alívio</option>
+                        <option value="Adequacao">Adequação</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="obs">Observações (opcional):</label>
+                    <input type="text" id="obs" placeholder="Observações sobre a obra">
+                </div>
+            </div>
+            
+            <h2>Materiais Utilizados</h2>
+            
+            <div class="form-group material-search">
+                <label for="materialSearch">Buscar Material:</label>
+                <input type="text" id="materialSearch" placeholder="Digite o nome do material...">
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+            
+            <div class="material-list" id="materialList">
+                <p style="text-align: center; padding: 20px; color: #777;">Nenhum material adicionado</p>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" id="saveBtn">
+                    <span id="saveSpinner" class="loading" style="display: none;"></span>
+                    <span id="saveText">Salvar Obra</span>
+                </button>
+                <button class="btn btn-warning" id="clearBtn">Limpar Formulário</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configuração e inicialização
+        const APP_CONFIG_KEY = 'obraMaterialsConfig';
+        let materiaisSelecionados = [];
+        let materiaisDatabase = [];
+        
+        // Inicializar a aplicação
+        function initApp() {
+            setupEventListeners();
+            renderMaterialsList();
+        }
+        
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Configuração
+            document.getElementById('loadMaterials').addEventListener('click', loadMaterialsFromSheets);
+            document.getElementById('testConnection').addEventListener('click', testConnection);
+            
+            // Formulário
+            document.getElementById('saveBtn').addEventListener('click', saveObra);
+            document.getElementById('clearBtn').addEventListener('click', clearForm);
+            
+            // Busca de materiais
+            const materialSearch = document.getElementById('materialSearch');
+            materialSearch.addEventListener('input', handleMaterialSearch);
+            materialSearch.addEventListener('focus', handleMaterialSearch);
+        }
+        
+        // Testar conexão com o script
+        async function testConnection() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showNotification('Por favor, cole a URL do Google Apps Script primeiro', true);
+                return;
+            }
+            
+            showNotification('Testando conexão...');
+            
+            try {
+                const testUrl = scriptUrl + '?action=getMaterials&test=' + Date.now();
+                const response = await fetch(testUrl);
+                
+                const debugInfo = document.getElementById('debugInfo');
+                
+                if (response.redirected) {
+                    debugInfo.innerHTML = `
+                        <strong>Erro de Redirecionamento:</strong><br>
+                        A URL está redirecionando para: ${response.url}<br>
+                        <br>
+                        <strong>Solução:</strong><br>
+                        Use a URL correta que já está pré-configurada no campo acima
+                    `;
+                    debugInfo.style.display = 'block';
+                    showNotification('Erro: URL redirecionando.', true);
+                } else if (!response.ok) {
+                    debugInfo.innerHTML = `
+                        <strong>Erro HTTP:</strong> ${response.status} - ${response.statusText}<br>
+                        <strong>URL:</strong> ${scriptUrl}<br>
+                    `;
+                    debugInfo.style.display = 'block';
+                    showNotification('Erro de conexão: ' + response.status, true);
+                } else {
+                    const data = await response.json();
+                    debugInfo.innerHTML = `
+                        <strong>Conexão bem-sucedida!</strong><br>
+                        <strong>URL:</strong> ${scriptUrl}<br>
+                        <strong>Materiais encontrados:</strong> ${data.materials ? data.materials.length : 0}<br>
+                    `;
+                    debugInfo.style.display = 'block';
+                    showNotification('Conexão testada com sucesso!');
+                }
+            } catch (error) {
+                const debugInfo = document.getElementById('debugInfo');
+                debugInfo.innerHTML = `
+                    <strong>Erro de conexão:</strong> ${error.message}<br>
+                    <strong>URL:</strong> ${scriptUrl}<br>
+                `;
+                debugInfo.style.display = 'block';
+                showNotification('Erro: ' + error.message, true);
+            }
+        }
+        
+        // Carregar materiais do Google Sheets via Apps Script
+        async function loadMaterialsFromSheets() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showNotification('Por favor, cole a URL do Google Apps Script primeiro', true);
+                return;
+            }
+            
+            // Mostrar spinner
+            document.getElementById('loadSpinner').style.display = 'inline-block';
+            document.getElementById('loadText').textContent = 'Carregando...';
+            
+            try {
+                const url = `${scriptUrl}?action=getMaterials&t=${Date.now()}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Verifica se há erro na resposta
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                if (data.materials && Array.isArray(data.materials)) {
+                    materiaisDatabase = data.materials.map((material, index) => ({
+                        id: index + 1,
+                        code: material.SKU,
+                        name: material.Descrição,
+                        unit: material.Unidade,
+                        stock: material.Qtdd_Depósito
+                    }));
+                    
+                    showNotification(`Base carregada: ${materiaisDatabase.length} materiais disponíveis!`);
+                } else {
+                    throw new Error('Formato de dados inválido na resposta');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar materiais:', error);
+                showNotification('Erro ao carregar materiais: ' + error.message, true);
+                materiaisDatabase = [];
+            } finally {
+                // Ocultar spinner
+                document.getElementById('loadSpinner').style.display = 'none';
+                document.getElementById('loadText').textContent = 'Carregar Materiais';
+            }
+        }
+        
+        // Buscar materiais
+        function handleMaterialSearch(e) {
+            const query = e.target.value.toLowerCase();
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
+            
+            if (query.length < 2) return;
+            
+            const results = materiaisDatabase.filter(material => {
+                return material.name.toLowerCase().includes(query) || 
+                       material.code.toLowerCase().includes(query);
+            });
+            
+            if (results.length > 0) {
+                results.forEach(material => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    
+                    const details = document.createElement('div');
+                    details.style.display = 'flex';
+                    details.style.justifyContent = 'space-between';
+                    details.style.width = '100%';
+                    
+                    const codeSpan = document.createElement('span');
+                    codeSpan.className = 'suggestion-code';
+                    codeSpan.textContent = material.code;
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = material.name;
+                    
+                    const unitSpan = document.createElement('span');
+                    unitSpan.textContent = material.unit;
+                    unitSpan.style.color = '#666';
+                    
+                    details.appendChild(codeSpan);
+                    details.appendChild(nameSpan);
+                    details.appendChild(unitSpan);
+                    
+                    item.appendChild(details);
+                    
+                    item.addEventListener('click', () => {
+                        addMaterial(material);
+                        document.getElementById('materialSearch').value = '';
+                        suggestions.style.display = 'none';
+                    });
+                    
+                    suggestions.appendChild(item);
+                });
+                
+                suggestions.style.display = 'block';
+            }
+        }
+        
+        // Adicionar material à lista
+        function addMaterial(material) {
+            // Verificar se o material já foi adicionado
+            const alreadyAdded = materiaisSelecionados.some(m => m.id === material.id);
+            
+            if (!alreadyAdded) {
+                materiaisSelecionados.push({
+                    ...material,
+                    quantity: 1
+                });
+                renderMaterialsList();
+                showNotification('Material adicionado com sucesso!');
+            } else {
+                showNotification('Este material já foi adicionado!', true);
+            }
+        }
+        
+        // Renderizar lista de materiais
+        function renderMaterialsList() {
+            const materialList = document.getElementById('materialList');
+            
+            if (materiaisSelecionados.length === 0) {
+                materialList.innerHTML = '<p style="text-align: center; padding: 20px; color: #777;">Nenhum material adicionado</p>';
+                return;
+            }
+            
+            materialList.innerHTML = '';
+            
+            materiaisSelecionados.forEach((material, index) => {
+                const materialItem = document.createElement('div');
+                materialItem.className = 'material-item';
+                materialItem.innerHTML = 
+                    `<div class="material-info">
+                        <strong>${material.code}</strong> - ${material.name} <small>(${material.unit})</small>
+                    </div>
+                    <div class="material-actions">
+                        <input type="number" class="material-quantity" value="${material.quantity}" min="1" 
+                               onchange="updateMaterialQuantity(${index}, this.value)">
+                        <button class="btn btn-danger" onclick="removeMaterial(${index})">×</button>
+                    </div>`;
+                materialList.appendChild(materialItem);
+            });
+        }
+        
+        // Atualizar quantidade do material
+        function updateMaterialQuantity(index, quantity) {
+            if (materiaisSelecionados[index]) {
+                materiaisSelecionados[index].quantity = parseInt(quantity);
+            }
+        }
+        
+        // Remover material da lista
+        function removeMaterial(index) {
+            materiaisSelecionados.splice(index, 1);
+            renderMaterialsList();
+        }
+        
+        // Salvar obra
+        async function saveObra() {
+            const tecnico = document.getElementById('tecnico').value;
+            const idObra = document.getElementById('idObra').value;
+            const endereco = document.getElementById('endereco').value;
+            const numero = document.getElementById('numero').value;
+            const complemento = document.getElementById('complemento').value;
+            const tipoObra = document.getElementById('tipoObra').value;
+            const obs = document.getElementById('obs').value;
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            
+            if (!tecnico || !endereco || !numero || !tipoObra) {
+                showNotification('Preencha todos os dados obrigatórios da obra!', true);
+                return;
+            }
+            
+            if (materiaisSelecionados.length === 0) {
+                showNotification('Adicione pelo menos um material!', true);
+                return;
+            }
+            
+            // Mostrar spinner
+            document.getElementById('saveSpinner').style.display = 'inline-block';
+            document.getElementById('saveText').textContent = 'Salvando...';
+            
+            try {
+                // Preparar dados para envio
+                const obraData = {
+                    tecnico: tecnico,
+                    idObra: idObra || '',
+                    endereco: endereco,
+                    numero: numero,
+                    complemento: complemento || '',
+                    tipoObra: tipoObra,
+                    obs: obs || '',
+                    materiais: materiaisSelecionados
+                };
+                
+                // Fazer requisição POST para o Google Apps Script
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    },
+                    body: `action=saveObra&payload=${encodeURIComponent(JSON.stringify(obraData))}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Falha ao salvar obra');
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Obra salva com sucesso!');
+                    clearForm();
+                } else {
+                    throw new Error(result.error || 'Erro ao salvar obra');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar obra:', error);
+                showNotification('Erro ao salvar obra. Tente novamente.', true);
+            } finally {
+                // Ocultar spinner
+                document.getElementById('saveSpinner').style.display = 'none';
+                document.getElementById('saveText').textContent = 'Salvar Obra';
+            }
+        }
+        
+        // Limpar formulário
+        function clearForm() {
+            document.getElementById('tecnico').value = '';
+            document.getElementById('idObra').value = '';
+            document.getElementById('endereco').value = '';
+            document.getElementById('numero').value = '';
+            document.getElementById('complemento').value = '';
+            document.getElementById('tipoObra').value = '';
+            document.getElementById('obs').value = '';
+            document.getElementById('materialSearch').value = '';
+            
+            materiaisSelecionados = [];
+            renderMaterialsList();
+        }
+        
+        // Mostrar notificação
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification' + (isError ? ' error' : '');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Iniciar a aplicação quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Torna funções disponíveis globalmente para os event listeners inline
+        window.updateMaterialQuantity = updateMaterialQuantity;
+        window.removeMaterial = removeMaterial;
+    </script>
+</body>
+</html>
