@@ -61,14 +61,6 @@
             border-bottom: 2px solid var(--secondary);
         }
         
-        .config-panel {
-            background: #fff8e1;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--accent);
-        }
-        
         .form-group {
             margin-bottom: 15px;
         }
@@ -191,6 +183,40 @@
         .notification.error {
             background: var(--accent);
         }
+        
+        /* Estilos para o status de carregamento automático */
+        .loading-status {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            border-left: 4px solid var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .loading-status .loading {
+            border-top-color: var(--secondary);
+        }
+        
+        .loading-status.error {
+            background: #ffebee;
+            border-left-color: var(--accent);
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-range span {
+            font-weight: 600;
+            color: var(--dark);
+        }
     </style>
 </head>
 <body>
@@ -201,12 +227,13 @@
         </header>
         
         <div class="content">
-            <div class="config-panel">
-                <h2>Configuração do Sistema</h2>
-                <div class="form-group">
-                    <label for="scriptUrl">URL do Google Apps Script:</label>
-                    <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec" readonly>
-                </div>
+            <!-- URL oculta para carregamento automático -->
+            <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec">
+            
+            <!-- Status de carregamento automático -->
+            <div id="loadingStatus" class="loading-status" style="display: none;">
+                <span class="loading"></span>
+                <span>Carregando dados do sistema...</span>
             </div>
             
             <h2>Consultar Obras e Materiais</h2>
@@ -223,8 +250,28 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="filterData">Filtrar por Data:</label>
+                    <label for="filterData">Filtrar por Data Específica:</label>
                     <input type="date" id="filterData">
+                </div>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="form-group">
+                    <label>Filtrar por Período:</label>
+                    <div class="date-range">
+                        <input type="date" id="filterDataInicio" style="flex: 1;">
+                        <span>até</span>
+                        <input type="date" id="filterDataFim" style="flex: 1;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filterTipoObra">Filtrar por Tipo de Obra:</label>
+                    <select id="filterTipoObra">
+                        <option value="">Todos os tipos</option>
+                        <option value="Alivio">Alívio</option>
+                        <option value="Adequacao">Adequação</option>
+                    </select>
                 </div>
             </div>
             
@@ -284,6 +331,14 @@
         function initApp() {
             document.getElementById('searchBtn').addEventListener('click', searchObras);
             document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            
+            // Deixar os campos de data vazios inicialmente
+            document.getElementById('filterDataInicio').value = '';
+            document.getElementById('filterDataFim').value = '';
+            document.getElementById('filterData').value = '';
+            
+            // Não carregar dados automaticamente ao iniciar
+            // Os dados só serão carregados quando o usuário fizer uma busca
         }
         
         async function searchObras() {
@@ -291,10 +346,28 @@
             const endereco = document.getElementById('filterEndereco').value;
             const tecnico = document.getElementById('filterTecnico').value;
             const dataFiltro = document.getElementById('filterData').value;
+            const dataInicio = document.getElementById('filterDataInicio').value;
+            const dataFim = document.getElementById('filterDataFim').value;
+            const tipoObra = document.getElementById('filterTipoObra').value;
+            
+            // Validar se pelo menos um filtro foi preenchido
+            if (!endereco && !tecnico && !dataFiltro && !dataInicio && !dataFim && !tipoObra) {
+                showNotification('Preencha pelo menos um filtro para buscar obras.', true);
+                return;
+            }
+            
+            // Validar se as datas de período estão corretas
+            if (dataInicio && dataFim && dataInicio > dataFim) {
+                showNotification('A data de início não pode ser maior que a data de fim.', true);
+                return;
+            }
             
             // Mostrar spinner
             document.getElementById('searchSpinner').style.display = 'inline-block';
             document.getElementById('searchText').textContent = 'Buscando...';
+            
+            // Mostrar status de carregamento
+            document.getElementById('loadingStatus').style.display = 'flex';
             
             try {
                 let url = `${scriptUrl}?action=getObras`;
@@ -302,6 +375,9 @@
                 if (endereco) url += `&endereco=${encodeURIComponent(endereco)}`;
                 if (tecnico) url += `&tecnico=${encodeURIComponent(tecnico)}`;
                 if (dataFiltro) url += `&data=${dataFiltro}`;
+                if (dataInicio) url += `&dataInicio=${dataInicio}`;
+                if (dataFim) url += `&dataFim=${dataFim}`;
+                if (tipoObra) url += `&tipoObra=${encodeURIComponent(tipoObra)}`;
                 
                 const response = await fetch(url);
                 
@@ -326,6 +402,9 @@
                 // Ocultar spinner
                 document.getElementById('searchSpinner').style.display = 'none';
                 document.getElementById('searchText').textContent = 'Buscar Obras';
+                
+                // Ocultar status de carregamento
+                document.getElementById('loadingStatus').style.display = 'none';
             }
         }
         
@@ -335,6 +414,7 @@
             
             if (obras.length === 0) {
                 document.getElementById('results').style.display = 'none';
+                showNotification('Nenhuma obra encontrada com os filtros aplicados', true);
                 return;
             }
             
@@ -381,6 +461,9 @@
             });
             
             document.getElementById('materiaisDetails').style.display = 'block';
+            
+            // Scroll para a seção de detalhes
+            document.getElementById('materiaisDetails').scrollIntoView({ behavior: 'smooth' });
         }
         
         function exportToExcel() {
@@ -458,11 +541,11 @@
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
     <!-- Botão Voltar -->
-<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-    <button onclick="window.location.href='index.html'" 
-            style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-        ←
-    </button>
-</div>
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button onclick="window.location.href='index.html'" 
+                style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            ←
+        </button>
+    </div>
 </body>
 </html>
