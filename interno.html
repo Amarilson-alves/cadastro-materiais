@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de materiais - Administração</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #2c3e50;
@@ -13,6 +14,7 @@
             --light: #ecf0f1;
             --dark: #34495e;
             --success: #2ecc71;
+            --warning: #f39c12;
         }
         
         * {
@@ -59,6 +61,11 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--secondary);
+        }
+        
+        h3 {
+            color: var(--dark);
+            margin: 25px 0 15px 0;
         }
         
         .form-group {
@@ -108,6 +115,29 @@
             background: #27ae60;
         }
         
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        
+        .btn-danger {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -149,15 +179,17 @@
         }
         
         .filter-controls {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
         }
         
-        .filter-controls .form-group {
-            flex: 1;
-            min-width: 200px;
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
         }
         
         .notification {
@@ -217,6 +249,160 @@
             font-weight: 600;
             color: var(--dark);
         }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .material-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #f5f5f5;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s;
+            margin-bottom: 5px;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .action-icon {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .action-icon.edit {
+            color: var(--secondary);
+        }
+        
+        .action-icon.edit:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .action-icon.delete {
+            color: var(--accent);
+        }
+        
+        .action-icon.delete:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px;
+            }
+            
+            .filter-controls, .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .date-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-range span {
+                text-align: center;
+            }
+        }
+
+        /* Botão Voltar */
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .material-count {
+            background-color: var(--secondary);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -228,7 +414,7 @@
         
         <div class="content">
             <!-- URL oculta para carregamento automático -->
-            <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec">
+            <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbxVw14dJYRlwUkRbTli9Jru2171G3jnV21u-8A_-NTo6fY0bCPsI3UgvBlG4Q90SSdFXw/exec">
             
             <!-- Status de carregamento automático -->
             <div id="loadingStatus" class="loading-status" style="display: none;">
@@ -236,298 +422,524 @@
                 <span>Carregando dados do sistema...</span>
             </div>
             
-            <h2>Consultar Obras e Materiais</h2>
-            
-            <div class="filter-controls">
-                <div class="form-group">
-                    <label for="filterEndereco">Filtrar por Endereço:</label>
-                    <input type="text" id="filterEndereco" placeholder="Digite o endereço">
-                </div>
-                
-                <div class="form-group">
-                    <label for="filterTecnico">Filtrar por Técnico:</label>
-                    <input type="text" id="filterTecnico" placeholder="Digite o nome do técnico">
-                </div>
-                
-                <div class="form-group">
-                    <label for="filterData">Filtrar por Data Específica:</label>
-                    <input type="date" id="filterData">
-                </div>
+            <div class="tabs">
+                <div class="tab active" data-tab="consultar">Consultar Obras</div>
+                <div class="tab" data-tab="materiais">Gerenciar Materiais</div>
             </div>
             
-            <div class="filter-controls">
-                <div class="form-group">
-                    <label>Filtrar por Período:</label>
-                    <div class="date-range">
-                        <input type="date" id="filterDataInicio" style="flex: 1;">
-                        <span>até</span>
-                        <input type="date" id="filterDataFim" style="flex: 1;">
+            <div class="tab-content active" id="consultar-tab">
+                <h2>Consultar Obras e Materiais</h2>
+                
+                <div class="filter-controls">
+                    <!-- Primeira linha: Endereço e Técnico -->
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterEndereco">Filtrar por Endereço:</label>
+                            <input type="text" id="filterEndereco" placeholder="Digite o endereço">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filterTecnico">Filtrar por Técnico:</label>
+                            <input type="text" id="filterTecnico" placeholder="Digite o nome do técnico">
+                        </div>
+                    </div>
+                    
+                    <!-- Segunda linha: Data específica e Período -->
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterData">Filtrar por Data Específica:</label>
+                            <input type="date" id="filterData">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filterDateRange">Filtrar por Período:</label>
+                            <div class="date-range">
+                                <input type="date" id="filterDateFrom">
+                                <span>até</span>
+                                <input type="date" id="filterDateTo">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terceira linha: Tipo de Obra -->
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterTipoObra">Filtrar por Tipo de Obra:</label>
+                            <select id="filterTipoObra">
+                                <option value="">Todos os tipos</option>
+                                <option value="Alivio">Alívio</option>
+                                <option value="Adequacao">Adequação</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="filterTipoObra">Filtrar por Tipo de Obra:</label>
-                    <select id="filterTipoObra">
-                        <option value="">Todos os tipos</option>
-                        <option value="Alivio">Alívio</option>
-                        <option value="Adequacao">Adequação</option>
-                    </select>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="searchBtn">
+                        <span class="loading" id="searchSpinner" style="display: none;"></span>
+                        <span id="searchText">Buscar Obras</span>
+                    </button>
+                    <button class="btn btn-success" id="exportBtn">Exportar para Excel</button>
+                    <button class="btn btn-warning" id="clearFilterBtn">Limpar Filtros</button>
+                </div>
+                
+                <div id="resultsContainer">
+                    <table class="data-table" id="resultsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Técnico</th>
+                                <th>Endereço</th>
+                                <th>Número</th>
+                                <th>Complemento</th>
+                                <th>Tipo de Obra</th>
+                                <th>Status</th>
+                                <th>Materiais</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody"></tbody>
+                    </table>
+                    
+                    <div id="noResults" style="text-align: center; padding: 30px; color: #777; display: none;">
+                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <h3>Nenhuma obra encontrada</h3>
+                        <p>Utilize os filtros acima para buscar obras cadastradas no sistema.</p>
+                    </div>
                 </div>
             </div>
             
-            <button class="btn btn-primary" id="searchBtn">
-                <span id="searchSpinner" class="loading" style="display: none;"></span>
-                <span id="searchText">Buscar Obras</span>
-            </button>
-            
-            <button class="btn btn-success" id="exportBtn" style="display: none;">Exportar para Excel</button>
-            
-            <div id="results" style="margin-top: 30px; display: none;">
-                <h3>Resultados da Busca</h3>
-                <table class="data-table" id="resultsTable">
+            <div class="tab-content" id="materiais-tab">
+                <h2>Gerenciar Materiais</h2>
+                
+                <div class="material-form">
+                    <h3>Adicionar Novo Material</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialCode">Código/SKU:</label>
+                            <input type="text" id="materialCode" placeholder="Ex: ABC123">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="materialName">Nome do Material:</label>
+                            <input type="text" id="materialName" placeholder="Ex: Cabo Óptico 12F">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="materialUnit">Unidade:</label>
+                            <input type="text" id="materialUnit" placeholder="Ex: Metro, Unidade, etc">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="materialCategory">Categoria:</label>
+                            <select id="materialCategory">
+                                <option value="Interno">Interno</option>
+                                <option value="Externo">Externo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-success" id="addMaterialBtn">Adicionar Material</button>
+                </div>
+                
+                <h3>Materiais Cadastrados</h3>
+                
+                <table class="data-table" id="materialsTable">
                     <thead>
                         <tr>
-                            <th>Endereço</th>
-                            <th>Número</th>
-                            <th>Técnico</th>
-                            <th>Tipo de Obra</th>
-                            <th>Data</th>
-                            <th>Materiais</th>
-                            <th>Quantidade Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsBody">
-                    </tbody>
-                </table>
-            </div>
-            
-            <div id="materiaisDetails" style="margin-top: 30px; display: none;">
-                <h3>Materiais Utilizados</h3>
-                <table class="data-table" id="materiaisTable">
-                    <thead>
-                        <tr>
-                            <th>SKU</th>
-                            <th>Material</th>
+                            <th>Código</th>
+                            <th>Nome</th>
                             <th>Unidade</th>
                             <th>Quantidade</th>
+                            <th>Categoria</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="materiaisBody">
-                    </tbody>
+                    <tbody id="materialsBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
     
     <div class="notification" id="notification"></div>
-
-    <!-- SheetJS library for Excel export -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    
+    <a href="index.html" class="back-button">←</a>
     
     <script>
+        // Configuração e inicialização
         let obrasData = [];
-        let currentObra = null;
+        let materiaisData = [];
         
+        // Inicializar a aplicação
         function initApp() {
-            document.getElementById('searchBtn').addEventListener('click', searchObras);
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-            
-            // Deixar os campos de data vazios inicialmente
-            document.getElementById('filterDataInicio').value = '';
-            document.getElementById('filterDataFim').value = '';
-            document.getElementById('filterData').value = '';
-            
-            // Não carregar dados automaticamente ao iniciar
-            // Os dados só serão carregados quando o usuário fizer uma busca
+            setupEventListeners();
+            setupTabs();
+            loadMaterials();
         }
         
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Botões de busca
+            document.getElementById('searchBtn').addEventListener('click', searchObras);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            document.getElementById('clearFilterBtn').addEventListener('click', clearFilters);
+            
+            // Botões de materiais
+            document.getElementById('addMaterialBtn').addEventListener('click', addMaterial);
+        }
+        
+        // Configurar abas
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    
+                    // Ativar aba clicada
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+        }
+        
+        // Buscar obras com filtros
         async function searchObras() {
-            const scriptUrl = document.getElementById('scriptUrl').value;
             const endereco = document.getElementById('filterEndereco').value;
             const tecnico = document.getElementById('filterTecnico').value;
-            const dataFiltro = document.getElementById('filterData').value;
-            const dataInicio = document.getElementById('filterDataInicio').value;
-            const dataFim = document.getElementById('filterDataFim').value;
-            const tipoObra = document.getElementById('filterTipoObra').value;
+            const data = document.getElementById('filterData').value;
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+            const tipoObra = document.getElementById('filterTipoObra').value; // NOVO FILTRO
             
-            // Validar se pelo menos um filtro foi preenchido
-            if (!endereco && !tecnico && !dataFiltro && !dataInicio && !dataFim && !tipoObra) {
-                showNotification('Preencha pelo menos um filtro para buscar obras.', true);
+            // Validar filtros de data
+            if (data && (dateFrom || dateTo)) {
+                showNotification('Use apenas um tipo de filtro de data por vez (data específica OU período)', true);
                 return;
             }
             
-            // Validar se as datas de período estão corretas
-            if (dataInicio && dataFim && dataInicio > dataFim) {
-                showNotification('A data de início não pode ser maior que a data de fim.', true);
+            if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+                showNotification('A data inicial não pode ser maior que a data final', true);
                 return;
             }
             
-            // Mostrar spinner
-            document.getElementById('searchSpinner').style.display = 'inline-block';
-            document.getElementById('searchText').textContent = 'Buscando...';
+            // Mostrar spinner de carregamento
+            const searchBtn = document.getElementById('searchBtn');
+            const searchSpinner = document.getElementById('searchSpinner');
+            const searchText = document.getElementById('searchText');
             
-            // Mostrar status de carregamento
-            document.getElementById('loadingStatus').style.display = 'flex';
+            searchSpinner.style.display = 'inline-block';
+            searchText.textContent = 'Buscando...';
+            searchBtn.disabled = true;
             
             try {
+                // Construir URL com parâmetros
+                const scriptUrl = document.getElementById('scriptUrl').value;
                 let url = `${scriptUrl}?action=getObras`;
                 
                 if (endereco) url += `&endereco=${encodeURIComponent(endereco)}`;
                 if (tecnico) url += `&tecnico=${encodeURIComponent(tecnico)}`;
-                if (dataFiltro) url += `&data=${dataFiltro}`;
-                if (dataInicio) url += `&dataInicio=${dataInicio}`;
-                if (dataFim) url += `&dataFim=${dataFim}`;
-                if (tipoObra) url += `&tipoObra=${encodeURIComponent(tipoObra)}`;
+                if (data) url += `&data=${encodeURIComponent(data)}`;
+                if (dateFrom) url += `&dataInicio=${encodeURIComponent(dateFrom)}`;
+                if (dateTo) url += `&dataFim=${encodeURIComponent(dateTo)}`;
+                if (tipoObra) url += `&tipoObra=${encodeURIComponent(tipoObra)}`; // NOVO PARÂMETRO
                 
+                // Fazer a requisição
                 const response = await fetch(url);
+                const responseData = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar obras');
-                }
-                
-                const resultData = await response.json();
-                
-                if (resultData.obras && Array.isArray(resultData.obras)) {
-                    obrasData = resultData.obras;
-                    displayResults(obrasData);
-                    document.getElementById('exportBtn').style.display = 'inline-block';
-                    showNotification(`Encontradas ${obrasData.length} obras`);
+                if (responseData.error) {
+                    showNotification(responseData.error, true);
                 } else {
-                    throw new Error('Formato de dados inválido');
+                    obrasData = responseData.obras || [];
+                    displayResults(obrasData);
+                    
+                    if (obrasData.length === 0) {
+                        showNotification('Nenhuma obra encontrada com os filtros aplicados', true);
+                    }
                 }
             } catch (error) {
+                showNotification('Erro ao buscar obras: ' + error.message, true);
                 console.error('Erro ao buscar obras:', error);
-                showNotification('Erro ao buscar obras. Verifique a conexão.', true);
             } finally {
-                // Ocultar spinner
-                document.getElementById('searchSpinner').style.display = 'none';
-                document.getElementById('searchText').textContent = 'Buscar Obras';
-                
-                // Ocultar status de carregamento
-                document.getElementById('loadingStatus').style.display = 'none';
+                // Restaurar botão de busca
+                searchSpinner.style.display = 'none';
+                searchText.textContent = 'Buscar Obras';
+                searchBtn.disabled = false;
             }
         }
         
+        // Exibir resultados na tabela
         function displayResults(obras) {
-            const resultsBody = document.getElementById('resultsBody');
-            resultsBody.innerHTML = '';
+            const table = document.getElementById('resultsTable');
+            const tbody = document.getElementById('resultsBody');
+            const noResults = document.getElementById('noResults');
+            
+            // Limpar tabela
+            tbody.innerHTML = '';
             
             if (obras.length === 0) {
-                document.getElementById('results').style.display = 'none';
-                showNotification('Nenhuma obra encontrada com os filtros aplicados', true);
+                table.style.display = 'none';
+                noResults.style.display = 'block';
                 return;
             }
+            
+            // Preencher tabela com resultados
+            table.style.display = 'table';
+            noResults.style.display = 'none';
             
             obras.forEach(obra => {
                 const row = document.createElement('tr');
                 
-                // Calcular quantidade total de materiais
-                const totalMateriais = obra.materiais.reduce((total, material) => total + (material.Quantidade || 0), 0);
+                // Contar materiais
+                const materialCount = obra.materiais ? obra.materiais.length : 0;
                 
                 row.innerHTML = `
-                    <td>${obra.Endereço}</td>
-                    <td>${obra.Número}</td>
-                    <td>${obra.Técnico}</td>
+                    <td>${formatDate(obra.Data)}</td>
+                    <td>${obra.Técnico || ''}</td>
+                    <td>${obra.Endereço || ''}</td>
+                    <td>${obra.Número || ''}</td>
+                    <td>${obra.Complemento || ''}</td>
                     <td>${obra.Tipo_Obra || ''}</td>
-                    <td>${new Date(obra.Data).toLocaleDateString('pt-BR')}</td>
-                    <td>${obra.materiais.length} materiais</td>
-                    <td>${totalMateriais} unidades</td>
+                    <td>${obra.Status || ''}</td>
+                    <td>
+                        <span>${materialCount} material(s)</span>
+                        <span class="material-count">${materialCount}</span>
+                    </td>
                 `;
                 
-                row.style.cursor = 'pointer';
-                row.addEventListener('click', () => showMateriaisDetails(obra));
-                
-                resultsBody.appendChild(row);
+                tbody.appendChild(row);
             });
-            
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('materiaisDetails').style.display = 'none';
         }
         
-        function showMateriaisDetails(obra) {
-            currentObra = obra;
-            const materiaisBody = document.getElementById('materiaisBody');
-            materiaisBody.innerHTML = '';
+        // Formatar data para exibição
+        function formatDate(dateString) {
+            if (!dateString) return '';
             
-            obra.materiais.forEach(material => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${material.SKU}</td>
-                    <td>${material.Descrição}</td>
-                    <td>${material.Unidade}</td>
-                    <td>${material.Quantidade}</td>
-                `;
-                materiaisBody.appendChild(row);
-            });
-            
-            document.getElementById('materiaisDetails').style.display = 'block';
-            
-            // Scroll para a seção de detalhes
-            document.getElementById('materiaisDetails').scrollIntoView({ behavior: 'smooth' });
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR');
+            } catch (e) {
+                return dateString;
+            }
         }
         
+        // Limpar filtros
+        function clearFilters() {
+            document.getElementById('filterEndereco').value = '';
+            document.getElementById('filterTecnico').value = '';
+            document.getElementById('filterData').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            document.getElementById('filterTipoObra').value = '';
+            
+            // Limpar resultados
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('resultsTable').style.display = 'none';
+            document.getElementById('noResults').style.display = 'block';
+        }
+        
+        // Exportar para Excel
         function exportToExcel() {
-            if (obrasData.length === 0) {
-                showNotification('Nenhum dado para exportar', true);
+            if (!obrasData || obrasData.length === 0) {
+                showNotification('Nenhum dado para exportar!', true);
                 return;
             }
             
-            // Preparar dados para exportação
-            const data = [];
-            
-            // Cabeçalho
-            data.push(['Endereço', 'Número', 'Complemento', 'Técnico', 'Tipo Obra', 'Observações', 'ID Obra', 'Data', 'SKU Material', 'Material', 'Unidade', 'Quantidade']);
-            
-            // Dados
-            obrasData.forEach(obra => {
-                if (obra.materiais && obra.materiais.length > 0) {
-                    obra.materiais.forEach(material => {
-                        data.push([
-                            obra.Endereço,
-                            obra.Número,
-                            obra.Complemento || '',
-                            obra.Técnico,
-                            obra.Tipo_Obra || '',
-                            obra.Observacoes || '',
-                            obra['ID Obra'] || '',
-                            new Date(obra.Data).toLocaleDateString('pt-BR'),
-                            material.SKU,
-                            material.Descrição,
-                            material.Unidade,
-                            material.Quantidade
-                        ]);
-                    });
-                } else {
-                    data.push([
-                        obra.Endereço,
-                        obra.Número,
-                        obra.Complemento || '',
-                        obra.Técnico,
-                        obra.Tipo_Obra || '',
-                        obra.Observacoes || '',
+            try {
+                // Criar conteúdo Excel
+                let csvContent = "ID Obra;Técnico;Endereço;Número;Complemento;Tipo Obra;Observações;Data;Status;Materiais\n";
+                
+                obrasData.forEach(obra => {
+                    const materiaisStr = obra.materiais ? obra.materiais.map(m => 
+                        `${m.name} (${m.quantity} ${m.unit})`
+                    ).join(', ') : '';
+                    
+                    const linha = [
                         obra['ID Obra'] || '',
-                        new Date(obra.Data).toLocaleDateString('pt-BR'),
-                        '',
-                        'Nenhum material cadastrado',
-                        '',
-                        ''
-                    ]);
-                }
-            });
-            
-            // Criar planilha
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Obras e Materiais");
-            
-            // Exportar
-            const fileName = `obras_materiais_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            showNotification('Dados exportados com sucesso!');
+                        obra['Técnico'] || '',
+                        obra['Endereço'] || '',
+                        obra['Número'] || '',
+                        obra['Complemento'] || '',
+                        obra['Tipo_Obra'] || '',
+                        obra['Observacoes'] || '',
+                        obra['Data'] || '',
+                        obra['Status'] || '',
+                        materiaisStr
+                    ].map(field => `"${field}"`).join(';');
+                    
+                    csvContent += linha + '\n';
+                });
+                
+                // Criar e baixar arquivo
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `obras_${new Date().toISOString().split('T')[0]}.xls`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification('Arquivo exportado com sucesso!');
+                
+            } catch (error) {
+                showNotification(`Erro ao exportar: ${error.message}`, true);
+            }
         }
         
+        // Carregar materiais
+        async function loadMaterials() {
+            try {
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const url = `${scriptUrl}?action=getMaterials`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification(data.error, true);
+                } else {
+                    materiaisData = data.materials || [];
+                    displayMaterials(materiaisData);
+                }
+            } catch (error) {
+                showNotification('Erro ao carregar materiais: ' + error.message, true);
+                console.error('Erro ao carregar materiais:', error);
+            }
+        }
+        
+        // Exibir materiais na tabela
+        function displayMaterials(materiais) {
+            const tbody = document.getElementById('materialsBody');
+            
+            // Limpar tabela
+            tbody.innerHTML = '';
+            
+            if (materiais.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum material cadastrado</td></tr>';
+                return;
+            }
+            
+            // Preencher tabela com materiais
+            materiais.forEach(material => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${material.SKU || ''}</td>
+                    <td>${material.Descrição || ''}</td>
+                    <td>${material.Unidade || ''}</td>
+                    <td>${material.Qtdd_Depósito || 0}</td>
+                    <td>${material.Categoria || 'Interno'}</td>
+                    <td class="table-actions">
+                        <i class="fas fa-trash action-icon delete" title="Excluir" data-sku="${material.SKU}"></i>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Adicionar event listeners para os ícones de ação
+            document.querySelectorAll('.action-icon.delete').forEach(icon => {
+                icon.addEventListener('click', () => deleteMaterial(icon.dataset.sku));
+            });
+        }
+        
+        // Adicionar novo material
+        async function addMaterial() {
+            const code = document.getElementById('materialCode').value.trim();
+            const name = document.getElementById('materialName').value.trim();
+            const unit = document.getElementById('materialUnit').value.trim();
+            const category = document.getElementById('materialCategory').value;
+            
+            if (!code || !name || !unit) {
+                showNotification('Preencha todos os campos obrigatórios', true);
+                return;
+            }
+            
+            try {
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const params = new URLSearchParams({
+                    action: 'addMaterial',
+                    code: code,
+                    name: name,
+                    unit: unit,
+                    category: category
+                });
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    body: params
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification(data.error, true);
+                } else {
+                    showNotification('Material adicionado com sucesso');
+                    
+                    // Limpar formulário
+                    document.getElementById('materialCode').value = '';
+                    document.getElementById('materialName').value = '';
+                    document.getElementById('materialUnit').value = '';
+                    
+                    // Recarregar lista de materiais
+                    loadMaterials();
+                }
+            } catch (error) {
+                showNotification('Erro ao adicionar material: ' + error.message, true);
+                console.error('Erro ao adicionar material:', error);
+            }
+        }
+        
+        // Excluir material
+        async function deleteMaterial(sku) {
+            if (!confirm(`Tem certeza que deseja excluir o material ${sku}?`)) {
+                return;
+            }
+            
+            try {
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const params = new URLSearchParams({
+                    action: 'deleteMaterial',
+                    code: sku
+                });
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    body: params
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification(data.error, true);
+                } else {
+                    showNotification('Material excluído com sucesso');
+                    
+                    // Recarregar lista de materiais
+                    loadMaterials();
+                }
+            } catch (error) {
+                showNotification('Erro ao excluir material: ' + error.message, true);
+                console.error('Erro ao excluir material:', error);
+            }
+        }
+        
+        // Mostrar notificação
         function showNotification(message, isError = false) {
             const notification = document.getElementById('notification');
+            
             notification.textContent = message;
             notification.className = 'notification' + (isError ? ' error' : '');
             notification.classList.add('show');
@@ -536,16 +948,9 @@
                 notification.classList.remove('show');
             }, 3000);
         }
-
-        // Iniciar a aplicação quando o DOM estiver carregado
+        
+        // Inicializar a aplicação quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
-    <!-- Botão Voltar -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-        <button onclick="window.location.href='index.html'" 
-                style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-            ←
-        </button>
-    </div>
 </body>
 </html>

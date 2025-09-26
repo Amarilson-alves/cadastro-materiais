@@ -95,44 +95,49 @@
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         
-        .material-search {
-            position: relative;
-        }
-        
-        .suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 6px 6px;
+        /* NOVOS ESTILOS PARA MATERIAIS EM BOTÕES */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
             max-height: 300px;
             overflow-y: auto;
-            z-index: 100;
-            display: none;
-        }
-        
-        .suggestion-item {
             padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .material-btn {
+            padding: 12px;
+            border: 2px solid var(--secondary);
+            border-radius: 6px;
+            background: white;
+            color: var(--dark);
+            font-weight: 500;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
+            transition: all 0.3s;
+            text-align: left;
         }
         
-        .suggestion-item:hover {
-            background-color: #f0f0f0;
+        .material-btn:hover {
+            background: var(--secondary);
+            color: white;
         }
         
-        .suggestion-code {
-            font-weight: bold;
+        .material-btn.selected {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .material-code {
+            font-size: 12px;
             color: var(--primary);
-            margin-right: 10px;
+            font-weight: bold;
         }
         
-        .material-list {
+        .selected-materials {
             margin-top: 20px;
             max-height: 300px;
             overflow-y: auto;
@@ -142,7 +147,7 @@
             background: white;
         }
         
-        .material-item {
+        .selected-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -150,21 +155,17 @@
             border-bottom: 1px solid #eee;
         }
         
-        .material-item:last-child {
+        .selected-item:last-child {
             border-bottom: none;
         }
         
-        .material-info {
-            flex: 1;
-        }
-        
-        .material-actions {
+        .quantity-control {
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .material-quantity {
+        .quantity-input {
             width: 80px;
             padding: 8px;
             text-align: center;
@@ -219,6 +220,33 @@
             background: #e67e22;
         }
         
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .category-btn {
+            padding: 10px 15px;
+            border: 2px solid var(--secondary);
+            border-radius: 6px;
+            background: white;
+            color: var(--secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .category-btn:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        
         .actions {
             display: flex;
             gap: 15px;
@@ -264,20 +292,6 @@
             to { transform: rotate(360deg); }
         }
         
-        @media (max-width: 768px) {
-            .content {
-                padding: 15px;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-        }
-
         .form-row {
             display: flex;
             gap: 15px;
@@ -289,17 +303,6 @@
             margin-bottom: 0;
         }
         
-        .debug-info {
-            background: #f1f8e9;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 14px;
-            display: none;
-        }
-        
-        /* Estilos para o status de carregamento automático */
         .loading-status {
             background: #e3f2fd;
             border-radius: 8px;
@@ -313,13 +316,51 @@
             gap: 10px;
         }
         
-        .loading-status .loading {
-            border-top-color: var(--secondary);
-        }
-        
         .loading-status.error {
             background: #ffebee;
             border-left-color: var(--accent);
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 15px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -331,23 +372,19 @@
         </header>
         
         <div class="content">
-            <!-- URL oculta para carregamento automático -->
-            <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbz3A1yFav34FxI0J1F4cEsbktT5RvXCC5MFIwSlYQLUSxht1vy28Zhse3CAZM-Hc0e5gQ/exec">
+            <input type="hidden" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbxVw14dJYRlwUkRbTli9Jru2171G3jnV21u-8A_-NTo6fY0bCPsI3UgvBlG4Q90SSdFXw/exec">
             
-            <!-- Status de carregamento automático -->
             <div id="loadingStatus" class="loading-status">
                 <span class="loading"></span>
-                <span>Carregando lista de materiais...</span>
+                <span>Carregando sistema...</span>
             </div>
-            
-            <div id="debugInfo" class="debug-info"></div>
             
             <h2>Dados da Obra</h2>
             
             <div class="form-row">
                 <div class="form-group">
                     <label for="tecnico">Nome Técnico:</label>
-                    <input type="text" id="tecnico" placeholder="Seu nome completo">
+                    <input type="text" id="tecnico" placeholder="Seu nome completo" required>
                 </div>
                 
                 <div class="form-group">
@@ -359,12 +396,12 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="endereco">Endereço:</label>
-                    <input type="text" id="endereco" placeholder="Ex: Rua das Flores">
+                    <input type="text" id="endereco" placeholder="Ex: Rua das Flores" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="numero">Número:</label>
-                    <input type="text" id="numero" placeholder="Ex: 123">
+                    <input type="text" id="numero" placeholder="Ex: 123" required>
                 </div>
             </div>
             
@@ -373,7 +410,6 @@
                 <input type="text" id="complemento" placeholder="Ex: Apt 101, Fundos, etc">
             </div>
             
-            <!-- NOVOS CAMPOS ADICIONADOS -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="tipoObra">Tipo de Obra:</label>
@@ -392,14 +428,22 @@
             
             <h2>Materiais Utilizados</h2>
             
-            <div class="form-group material-search">
-                <label for="materialSearch">Buscar Material:</label>
-                <input type="text" id="materialSearch" placeholder="Digite o nome do material...">
-                <div class="suggestions" id="suggestions"></div>
+            <div class="category-buttons">
+                <button class="category-btn" data-category="Interno">Material Interno</button>
+                <button class="category-btn" data-category="Externo">Material Externo</button>
             </div>
             
-            <div class="material-list" id="materialList">
-                <p style="text-align: center; padding: 20px; color: #777;">Nenhum material adicionado</p>
+            <div class="form-group">
+                <label>Selecione os materiais:</label>
+                <div class="materials-grid" id="materialsGrid">
+                    <p style="text-align: center; grid-column: 1 / -1; color: #777;">
+                        Selecione uma categoria acima para ver os materiais
+                    </p>
+                </div>
+            </div>
+            
+            <div class="selected-materials" id="selectedMaterials">
+                <p style="text-align: center; padding: 20px; color: #777;">Nenhum material selecionado</p>
             </div>
             
             <div class="actions">
@@ -413,265 +457,216 @@
     </div>
     
     <div class="notification" id="notification"></div>
+    <a href="index.html" class="back-button">←</a>
 
     <script>
-        // Configuração e inicialização
-        const APP_CONFIG_KEY = 'obraMaterialsConfig';
         let materiaisSelecionados = [];
         let materiaisDatabase = [];
-        
-        // Inicializar a aplicação
+        let currentCategory = null;
+
         function initApp() {
             setupEventListeners();
-            renderMaterialsList();
-            // Carregar materiais automaticamente
-            loadMaterialsAutomatically();
+            document.getElementById('loadingStatus').style.display = 'none';
         }
-        
-        // Configurar event listeners
+
         function setupEventListeners() {
-            // Formulário
             document.getElementById('saveBtn').addEventListener('click', saveObra);
             document.getElementById('clearBtn').addEventListener('click', clearForm);
             
-            // Busca de materiais
-            const materialSearch = document.getElementById('materialSearch');
-            materialSearch.addEventListener('input', handleMaterialSearch);
-            materialSearch.addEventListener('focus', handleMaterialSearch);
+            // Botões de categoria
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentCategory = btn.dataset.category;
+                    loadMaterialsByCategory(currentCategory);
+                });
+            });
         }
-        
-        // Carregar materiais automaticamente ao iniciar
-        async function loadMaterialsAutomatically() {
-            const scriptUrl = document.getElementById('scriptUrl').value;
-            const loadingStatus = document.getElementById('loadingStatus');
-            
-            if (!scriptUrl) {
-                loadingStatus.innerHTML = '<span>Erro: URL do script não configurada</span>';
-                loadingStatus.className = 'loading-status error';
-                return;
-            }
+
+        async function loadMaterialsByCategory(category) {
+            const materialsGrid = document.getElementById('materialsGrid');
+            materialsGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Carregando materiais...</p>';
             
             try {
-                const url = `${scriptUrl}?action=getMaterials&t=${Date.now()}`;
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const url = `${scriptUrl}?action=getMaterialsByCategory&category=${category}&timestamp=${Date.now()}`;
                 const response = await fetch(url);
                 
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
                 
-                const data = await response.json();
+                const result = await response.json();
                 
-                // Verifica se há erro na resposta
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                if (result.error) throw new Error(result.error);
                 
-                if (data.materials && Array.isArray(data.materials)) {
-                    materiaisDatabase = data.materials.map((material, index) => ({
-                        id: index + 1,
-                        code: material.SKU,
-                        name: material.Descrição,
-                        unit: material.Unidade,
-                        stock: material.Qtdd_Depósito
-                    }));
-                    
-                    // Ocultar status de carregamento
-                    loadingStatus.style.display = 'none';
-                    showNotification(`Base carregada: ${materiaisDatabase.length} materiais disponíveis!`);
-                } else {
-                    throw new Error('Formato de dados inválido na resposta');
-                }
+                materiaisDatabase = result.materials;
+                renderMaterialsGrid(materiaisDatabase);
+                
             } catch (error) {
-                console.error('Erro ao carregar materiais:', error);
-                loadingStatus.innerHTML = `<span>Erro ao carregar materiais: ${error.message}</span>`;
-                loadingStatus.className = 'loading-status error';
-                
-                // Tentar novamente após 5 segundos
-                setTimeout(loadMaterialsAutomatically, 5000);
+                materialsGrid.innerHTML = `<p style="text-align: center; grid-column: 1 / -1; color: red;">Erro: ${error.message}</p>`;
             }
         }
-        
-        // Buscar materiais
-        function handleMaterialSearch(e) {
-            const query = e.target.value.toLowerCase();
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = '';
-            suggestions.style.display = 'none';
+
+        function renderMaterialsGrid(materials) {
+            const materialsGrid = document.getElementById('materialsGrid');
             
-            if (query.length < 2) return;
+            if (materials.length === 0) {
+                materialsGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: #777;">Nenhum material encontrado nesta categoria</p>';
+                return;
+            }
             
-            const results = materiaisDatabase.filter(material => {
-                return material.name.toLowerCase().includes(query) || 
-                       material.code.toLowerCase().includes(query);
-            });
+            materialsGrid.innerHTML = materials.map(material => `
+                <button class="material-btn" data-sku="${material.SKU}">
+                    <div class="material-code">${material.SKU}</div>
+                    <div>${material.Descrição}</div>
+                    <div style="font-size: 12px; color: #666;">${material.Unidade} | Estoque: ${material.Qtdd_Depósito}</div>
+                </button>
+            `).join('');
             
-            if (results.length > 0) {
-                results.forEach(material => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
+            // Adicionar event listeners aos botões
+            materialsGrid.querySelectorAll('.material-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const sku = btn.dataset.sku;
+                    const material = materiaisDatabase.find(m => m.SKU === sku);
                     
-                    const details = document.createElement('div');
-                    details.style.display = 'flex';
-                    details.style.justifyContent = 'space-between';
-                    details.style.width = '100%';
-                    
-                    const codeSpan = document.createElement('span');
-                    codeSpan.className = 'suggestion-code';
-                    codeSpan.textContent = material.code;
-                    
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = material.name;
-                    
-                    const unitSpan = document.createElement('span');
-                    unitSpan.textContent = material.unit;
-                    unitSpan.style.color = '#666';
-                    
-                    details.appendChild(codeSpan);
-                    details.appendChild(nameSpan);
-                    details.appendChild(unitSpan);
-                    
-                    item.appendChild(details);
-                    
-                    item.addEventListener('click', () => {
-                        addMaterial(material);
-                        document.getElementById('materialSearch').value = '';
-                        suggestions.style.display = 'none';
-                    });
-                    
-                    suggestions.appendChild(item);
+                    if (material) {
+                        toggleMaterialSelection(material);
+                        btn.classList.toggle('selected');
+                    }
                 });
-                
-                suggestions.style.display = 'block';
-            }
+            });
         }
-        
-        // Adicionar material à lista
-        function addMaterial(material) {
-            // Verificar se o material já foi adicionado
-            const alreadyAdded = materiaisSelecionados.some(m => m.id === material.id);
+
+        function toggleMaterialSelection(material) {
+            const index = materiaisSelecionados.findIndex(m => m.code === material.SKU);
             
-            if (!alreadyAdded) {
+            if (index > -1) {
+                // Remover material se já estiver selecionado
+                materiaisSelecionados.splice(index, 1);
+                showNotification('Material removido');
+            } else {
+                // Adicionar material com quantidade padrão 1
                 materiaisSelecionados.push({
-                    ...material,
+                    code: material.SKU,
+                    name: material.Descrição,
+                    unit: material.Unidade,
                     quantity: 1
                 });
-                renderMaterialsList();
-                showNotification('Material adicionado com sucesso!');
-            } else {
-                showNotification('Este material já foi adicionado!', true);
+                showNotification('Material adicionado');
             }
+            
+            renderSelectedMaterials();
         }
-        
-        // Renderizar lista de materiais
-        function renderMaterialsList() {
-            const materialList = document.getElementById('materialList');
+
+        function renderSelectedMaterials() {
+            const container = document.getElementById('selectedMaterials');
             
             if (materiaisSelecionados.length === 0) {
-                materialList.innerHTML = '<p style="text-align: center; padding: 20px; color: #777;">Nenhum material adicionado</p>';
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: #777;">Nenhum material selecionado</p>';
                 return;
             }
             
-            materialList.innerHTML = '';
-            
-            materiaisSelecionados.forEach((material, index) => {
-                const materialItem = document.createElement('div');
-                materialItem.className = 'material-item';
-                materialItem.innerHTML = 
-                    `<div class="material-info">
-                        <strong>${material.code}</strong> - ${material.name} <small>(${material.unit})</small>
+            container.innerHTML = materiaisSelecionados.map((material, index) => `
+                <div class="selected-item">
+                    <div>
+                        <strong>${material.code}</strong> - ${material.name}
                     </div>
-                    <div class="material-actions">
-                        <input type="number" class="material-quantity" value="${material.quantity}" min="1" 
-                               onchange="updateMaterialQuantity(${index}, this.value)">
-                        <button class="btn btn-danger" onclick="removeMaterial(${index})">×</button>
-                    </div>`;
-                materialList.appendChild(materialItem);
-            });
+                    <div class="quantity-control">
+                        <input type="number" min="1" value="${material.quantity}" 
+                               class="quantity-input" 
+                               onchange="updateQuantity(${index}, parseInt(this.value))">
+                        <button class="btn btn-danger" onclick="removeSelectedMaterial(${index})">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
-        
-        // Atualizar quantidade do material
-        function updateMaterialQuantity(index, quantity) {
-            if (materiaisSelecionados[index]) {
-                materiaisSelecionados[index].quantity = parseInt(quantity);
-            }
+
+        function updateQuantity(index, quantity) {
+            if (quantity < 1) quantity = 1;
+            materiaisSelecionados[index].quantity = quantity;
         }
-        
-        // Remover material da lista
-        function removeMaterial(index) {
+
+        function removeSelectedMaterial(index) {
+            const material = materiaisSelecionados[index];
             materiaisSelecionados.splice(index, 1);
-            renderMaterialsList();
+            
+            // Remover classe selected do botão correspondente
+            const btn = document.querySelector(`.material-btn[data-sku="${material.code}"]`);
+            if (btn) btn.classList.remove('selected');
+            
+            renderSelectedMaterials();
+            showNotification('Material removido');
         }
-        
-        // Salvar obra
+
         async function saveObra() {
-            const tecnico = document.getElementById('tecnico').value;
-            const idObra = document.getElementById('idObra').value;
-            const endereco = document.getElementById('endereco').value;
-            const numero = document.getElementById('numero').value;
-            const complemento = document.getElementById('complemento').value;
+            // Validações
+            const tecnico = document.getElementById('tecnico').value.trim();
+            const endereco = document.getElementById('endereco').value.trim();
+            const numero = document.getElementById('numero').value.trim();
             const tipoObra = document.getElementById('tipoObra').value;
-            const obs = document.getElementById('obs').value;
-            const scriptUrl = document.getElementById('scriptUrl').value;
             
             if (!tecnico || !endereco || !numero || !tipoObra) {
-                showNotification('Preencha todos os dados obrigatórios da obra!', true);
+                showNotification('Preencha todos os campos obrigatórios!', true);
                 return;
             }
             
             if (materiaisSelecionados.length === 0) {
-                showNotification('Adicione pelo menos um material!', true);
+                showNotification('Selecione pelo menos um material!', true);
                 return;
             }
             
-            // Mostrar spinner
-            document.getElementById('saveSpinner').style.display = 'inline-block';
-            document.getElementById('saveText').textContent = 'Salvando...';
+            const obraData = {
+                tecnico,
+                idObra: document.getElementById('idObra').value.trim(),
+                endereco,
+                numero,
+                complemento: document.getElementById('complemento').value.trim(),
+                tipoObra,
+                obs: document.getElementById('obs').value.trim(),
+                materiais: materiaisSelecionados
+            };
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const saveSpinner = document.getElementById('saveSpinner');
+            const saveText = document.getElementById('saveText');
+            
+            saveBtn.disabled = true;
+            saveSpinner.style.display = 'inline-block';
+            saveText.textContent = 'Salvando...';
             
             try {
-                // Preparar dados para envio
-                const obraData = {
-                    tecnico: tecnico,
-                    idObra: idObra || '',
-                    endereco: endereco,
-                    numero: numero,
-                    complemento: complemento || '',
-                    tipoObra: tipoObra,
-                    obs: obs || '',
-                    materiais: materiaisSelecionados
-                };
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveObra');
+                formData.append('payload', JSON.stringify(obraData));
                 
-                // Fazer requisição POST para o Google Apps Script
                 const response = await fetch(scriptUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-                    },
-                    body: `action=saveObra&payload=${encodeURIComponent(JSON.stringify(obraData))}`
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+                    body: formData
                 });
                 
-                if (!response.ok) {
-                    throw new Error('Falha ao salvar obra');
-                }
+                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    showNotification('Obra salva com sucesso!');
+                    showNotification('Obra salva com sucesso! ID: ' + (result.obraId || ''));
                     clearForm();
                 } else {
-                    throw new Error(result.error || 'Erro ao salvar obra');
+                    throw new Error(result.error || 'Erro ao salvar');
                 }
             } catch (error) {
-                console.error('Erro ao salvar obra:', error);
-                showNotification('Erro ao salvar obra. Tente novamente.', true);
+                showNotification(`Erro ao salvar: ${error.message}`, true);
             } finally {
-                // Ocultar spinner
-                document.getElementById('saveSpinner').style.display = 'none';
-                document.getElementById('saveText').textContent = 'Salvar Obra';
+                saveBtn.disabled = false;
+                saveSpinner.style.display = 'none';
+                saveText.textContent = 'Salvar Obra';
             }
         }
-        
-        // Limpar formulário
+
         function clearForm() {
             document.getElementById('tecnico').value = '';
             document.getElementById('idObra').value = '';
@@ -680,13 +675,18 @@
             document.getElementById('complemento').value = '';
             document.getElementById('tipoObra').value = '';
             document.getElementById('obs').value = '';
-            document.getElementById('materialSearch').value = '';
             
             materiaisSelecionados = [];
-            renderMaterialsList();
+            renderSelectedMaterials();
+            
+            // Limpar seleção dos botões
+            document.querySelectorAll('.material-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            showNotification('Formulário limpo!');
         }
-        
-        // Mostrar notificação
+
         function showNotification(message, isError = false) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -698,19 +698,7 @@
             }, 3000);
         }
 
-        // Iniciar a aplicação quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', initApp);
-        
-        // Torna funções disponíveis globalmente para os event listeners inline
-        window.updateMaterialQuantity = updateMaterialQuantity;
-        window.removeMaterial = removeMaterial;
     </script>
-    <!-- Botão Voltar -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-        <button onclick="window.location.href='index.html'" 
-                style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-            ←
-        </button>
-    </div>
 </body>
 </html>
