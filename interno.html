@@ -517,7 +517,8 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="materialCode">Código/SKU:</label>
-                            <input type="text" id="materialCode" placeholder="Ex: ABC123">
+                            <input type="text" id="materialCode" placeholder="Ex: 0000-0000-0" maxlength="11">
+                            <small style="color: #666; font-size: 12px;">Formato: 0000-0000-0 (não obrigatório)</small>
                         </div>
                         
                         <div class="form-group">
@@ -529,7 +530,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="materialUnit">Unidade:</label>
-                            <input type="text" id="materialUnit" placeholder="Ex: Metro, Unidade, etc">
+                            <select id="materialUnit">
+                                <option value="">Selecione a unidade</option>
+                                <option value="UN">UN</option>
+                                <option value="MT">MT</option>
+                                <option value="CX">CX</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
@@ -577,6 +583,40 @@
             setupEventListeners();
             setupTabs();
             loadMaterials();
+            setupSKUMask();
+        }
+        
+        // Configurar máscara para o campo SKU
+        function setupSKUMask() {
+            const skuInput = document.getElementById('materialCode');
+            
+            skuInput.addEventListener('input', function(e) {
+                // Remove tudo que não é número
+                let value = e.target.value.replace(/\D/g, '');
+                
+                // Aplica a máscara 0000-0000-0
+                if (value.length > 0) {
+                    value = value.substring(0, 9); // Limita a 9 dígitos
+                    
+                    if (value.length <= 4) {
+                        value = value;
+                    } else if (value.length <= 8) {
+                        value = value.substring(0, 4) + '-' + value.substring(4);
+                    } else {
+                        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + value.substring(8);
+                    }
+                }
+                
+                e.target.value = value;
+            });
+            
+            // Permite apagar caracteres normalmente
+            skuInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace') {
+                    // Permite o comportamento padrão do backspace
+                    return true;
+                }
+            });
         }
         
         // Configurar event listeners
@@ -858,11 +898,12 @@
         async function addMaterial() {
             const code = document.getElementById('materialCode').value.trim();
             const name = document.getElementById('materialName').value.trim();
-            const unit = document.getElementById('materialUnit').value.trim();
+            const unit = document.getElementById('materialUnit').value;
             const category = document.getElementById('materialCategory').value;
             
-            if (!code || !name || !unit) {
-                showNotification('Preencha todos os campos obrigatórios', true);
+            // Validação (código não é obrigatório, mas nome e unidade são)
+            if (!name || !unit) {
+                showNotification('Preencha o nome do material e selecione a unidade', true);
                 return;
             }
             
