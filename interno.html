@@ -243,11 +243,19 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            width: 100%;
         }
         
         .date-range span {
             font-weight: 600;
             color: var(--dark);
+            white-space: nowrap;
+            padding: 0 10px;
+        }
+        
+        .date-range input {
+            flex: 1;
+            min-width: 120px;
         }
         
         .action-buttons {
@@ -364,13 +372,19 @@
                 overflow-x: auto;
             }
             
+            /* CORREÇÃO ESPECÍFICA PARA O DATE-RANGE NO MOBILE */
             .date-range {
-                flex-direction: column;
-                align-items: stretch;
+                flex-direction: row;
+                align-items: center;
             }
             
             .date-range span {
                 text-align: center;
+                padding: 0 10px;
+            }
+            
+            .date-range input {
+                min-width: 0;
             }
         }
 
@@ -576,6 +590,7 @@
     <script>
         // Configuração e inicialização
         let obrasData = [];
+        let todasObrasData = []; // Armazena TODOS os dados do servidor
         let materiaisData = [];
         
         // Inicializar a aplicação
@@ -584,6 +599,28 @@
             setupTabs();
             loadMaterials();
             setupSKUMask();
+            carregarTodasObras(); // Carrega todos os dados uma vez
+        }
+        
+        // Carregar TODAS as obras do servidor uma única vez
+        async function carregarTodasObras() {
+            try {
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                const url = `${scriptUrl}?action=getObras`;
+                
+                const response = await fetch(url);
+                const responseData = await response.json();
+                
+                if (responseData.error) {
+                    showNotification('Erro ao carregar obras: ' + responseData.error, true);
+                } else {
+                    todasObrasData = responseData.obras || [];
+                    console.log('Total de obras carregadas:', todasObrasData.length);
+                }
+            } catch (error) {
+                showNotification('Erro ao carregar obras: ' + error.message, true);
+                console.error('Erro ao carregar obras:', error);
+            }
         }
         
         // Configurar máscara para o campo SKU
@@ -591,12 +628,10 @@
             const skuInput = document.getElementById('materialCode');
             
             skuInput.addEventListener('input', function(e) {
-                // Remove tudo que não é número
                 let value = e.target.value.replace(/\D/g, '');
                 
-                // Aplica a máscara 0000-0000-0
                 if (value.length > 0) {
-                    value = value.substring(0, 9); // Limita a 9 dígitos
+                    value = value.substring(0, 9);
                     
                     if (value.length <= 4) {
                         value = value;
@@ -610,10 +645,8 @@
                 e.target.value = value;
             });
             
-            // Permite apagar caracteres normalmente
             skuInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Backspace') {
-                    // Permite o comportamento padrão do backspace
                     return true;
                 }
             });
@@ -621,12 +654,9 @@
         
         // Configurar event listeners
         function setupEventListeners() {
-            // Botões de busca
             document.getElementById('searchBtn').addEventListener('click', searchObras);
             document.getElementById('exportBtn').addEventListener('click', exportToExcel);
             document.getElementById('clearFilterBtn').addEventListener('click', clearFilters);
-            
-            // Botões de materiais
             document.getElementById('addMaterialBtn').addEventListener('click', addMaterial);
         }
         
@@ -639,7 +669,6 @@
                 tab.addEventListener('click', () => {
                     const tabId = tab.dataset.tab;
                     
-                    // Ativar aba clicada
                     tabs.forEach(t => t.classList.remove('active'));
                     tabContents.forEach(tc => tc.classList.remove('active'));
                     
@@ -649,26 +678,77 @@
             });
         }
         
-        // Buscar obras com filtros
-        async function searchObras() {
-            const endereco = document.getElementById('filterEndereco').value;
-            const tecnico = document.getElementById('filterTecnico').value;
+        // Função para filtrar obras LOCALMENTE
+        function filtrarObras() {
+            const endereco = document.getElementById('filterEndereco').value.toLowerCase();
+            const tecnico = document.getElementById('filterTecnico').value.toLowerCase();
             const data = document.getElementById('filterData').value;
             const dateFrom = document.getElementById('filterDateFrom').value;
             const dateTo = document.getElementById('filterDateTo').value;
-            const tipoObra = document.getElementById('filterTipoObra').value; // NOVO FILTRO
+            const tipoObra = document.getElementById('filterTipoObra').value;
             
             // Validar filtros de data
             if (data && (dateFrom || dateTo)) {
                 showNotification('Use apenas um tipo de filtro de data por vez (data específica OU período)', true);
-                return;
+                return [];
             }
             
             if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
                 showNotification('A data inicial não pode ser maior que a data final', true);
-                return;
+                return [];
             }
             
+            // Filtrar os dados localmente
+            const obrasFiltradas = todasObrasData.filter(obra => {
+                // Filtro por endereço
+                if (endereco && obra.Endereço) {
+                    const obraEndereco = obra.Endereço.toLowerCase();
+                    if (!obraEndereco.includes(endereco)) return false;
+                }
+                
+                // Filtro por técnico
+                if (tecnico && obra.Técnico) {
+                    const obraTecnico = obra.Técnico.toLowerCase();
+                    if (!obraTecnico.includes(tecnico)) return false;
+                }
+                
+                // Filtro por tipo de obra
+                if (tipoObra && obra.Tipo_Obra !== tipoObra) {
+                    return false;
+                }
+                
+                // Filtro por data específica
+                if (data) {
+                    const obraData = formatarDataParaComparacao(obra.Data);
+                    const filtroData = formatarDataParaComparacao(data);
+                    if (obraData !== filtroData) return false;
+                }
+                
+                // Filtro por período
+                if (dateFrom || dateTo) {
+                    const obraData = new Date(obra.Data);
+                    const dataInicio = dateFrom ? new Date(dateFrom) : null;
+                    const dataFim = dateTo ? new Date(dateTo) : null;
+                    
+                    if (dataInicio && obraData < dataInicio) return false;
+                    if (dataFim && obraData > dataFim) return false;
+                }
+                
+                return true;
+            });
+            
+            return obrasFiltradas;
+        }
+        
+        // Função auxiliar para formatar data para comparação
+        function formatarDataParaComparacao(dataString) {
+            if (!dataString) return '';
+            const date = new Date(dataString);
+            return date.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
+        }
+        
+        // Buscar obras com filtros (agora localmente)
+        function searchObras() {
             // Mostrar spinner de carregamento
             const searchBtn = document.getElementById('searchBtn');
             const searchSpinner = document.getElementById('searchSpinner');
@@ -678,41 +758,28 @@
             searchText.textContent = 'Buscando...';
             searchBtn.disabled = true;
             
-            try {
-                // Construir URL com parâmetros
-                const scriptUrl = document.getElementById('scriptUrl').value;
-                let url = `${scriptUrl}?action=getObras`;
-                
-                if (endereco) url += `&endereco=${encodeURIComponent(endereco)}`;
-                if (tecnico) url += `&tecnico=${encodeURIComponent(tecnico)}`;
-                if (data) url += `&data=${encodeURIComponent(data)}`;
-                if (dateFrom) url += `&dataInicio=${encodeURIComponent(dateFrom)}`;
-                if (dateTo) url += `&dataFim=${encodeURIComponent(dateTo)}`;
-                if (tipoObra) url += `&tipoObra=${encodeURIComponent(tipoObra)}`; // NOVO PARÂMETRO
-                
-                // Fazer a requisição
-                const response = await fetch(url);
-                const responseData = await response.json();
-                
-                if (responseData.error) {
-                    showNotification(responseData.error, true);
-                } else {
-                    obrasData = responseData.obras || [];
+            // Usar setTimeout para dar tempo do spinner aparecer
+            setTimeout(() => {
+                try {
+                    // Filtrar obras localmente
+                    obrasData = filtrarObras();
                     displayResults(obrasData);
                     
                     if (obrasData.length === 0) {
                         showNotification('Nenhuma obra encontrada com os filtros aplicados', true);
+                    } else {
+                        showNotification(`Encontradas ${obrasData.length} obra(s)`);
                     }
+                } catch (error) {
+                    showNotification('Erro ao buscar obras: ' + error.message, true);
+                    console.error('Erro ao buscar obras:', error);
+                } finally {
+                    // Restaurar botão de busca
+                    searchSpinner.style.display = 'none';
+                    searchText.textContent = 'Buscar Obras';
+                    searchBtn.disabled = false;
                 }
-            } catch (error) {
-                showNotification('Erro ao buscar obras: ' + error.message, true);
-                console.error('Erro ao buscar obras:', error);
-            } finally {
-                // Restaurar botão de busca
-                searchSpinner.style.display = 'none';
-                searchText.textContent = 'Buscar Obras';
-                searchBtn.disabled = false;
-            }
+            }, 100);
         }
         
         // Exibir resultados na tabela
@@ -721,7 +788,6 @@
             const tbody = document.getElementById('resultsBody');
             const noResults = document.getElementById('noResults');
             
-            // Limpar tabela
             tbody.innerHTML = '';
             
             if (obras.length === 0) {
@@ -730,14 +796,11 @@
                 return;
             }
             
-            // Preencher tabela com resultados
             table.style.display = 'table';
             noResults.style.display = 'none';
             
             obras.forEach(obra => {
                 const row = document.createElement('tr');
-                
-                // Contar materiais
                 const materialCount = obra.materiais ? obra.materiais.length : 0;
                 
                 row.innerHTML = `
@@ -779,7 +842,6 @@
             document.getElementById('filterDateTo').value = '';
             document.getElementById('filterTipoObra').value = '';
             
-            // Limpar resultados
             document.getElementById('resultsBody').innerHTML = '';
             document.getElementById('resultsTable').style.display = 'none';
             document.getElementById('noResults').style.display = 'block';
@@ -793,7 +855,6 @@
             }
             
             try {
-                // Criar conteúdo Excel
                 let csvContent = "ID Obra;Técnico;Endereço;Número;Complemento;Tipo Obra;Observações;Data;Status;Materiais\n";
                 
                 obrasData.forEach(obra => {
@@ -817,7 +878,6 @@
                     csvContent += linha + '\n';
                 });
                 
-                // Criar e baixar arquivo
                 const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 const url = URL.createObjectURL(blob);
@@ -862,7 +922,6 @@
         function displayMaterials(materiais) {
             const tbody = document.getElementById('materialsBody');
             
-            // Limpar tabela
             tbody.innerHTML = '';
             
             if (materiais.length === 0) {
@@ -870,7 +929,6 @@
                 return;
             }
             
-            // Preencher tabela com materiais
             materiais.forEach(material => {
                 const row = document.createElement('tr');
                 
@@ -888,7 +946,6 @@
                 tbody.appendChild(row);
             });
             
-            // Adicionar event listeners para os ícones de ação
             document.querySelectorAll('.action-icon.delete').forEach(icon => {
                 icon.addEventListener('click', () => deleteMaterial(icon.dataset.sku));
             });
@@ -901,7 +958,6 @@
             const unit = document.getElementById('materialUnit').value;
             const category = document.getElementById('materialCategory').value;
             
-            // Validação (código não é obrigatório, mas nome e unidade são)
             if (!name || !unit) {
                 showNotification('Preencha o nome do material e selecione a unidade', true);
                 return;
@@ -929,12 +985,10 @@
                 } else {
                     showNotification('Material adicionado com sucesso');
                     
-                    // Limpar formulário
                     document.getElementById('materialCode').value = '';
                     document.getElementById('materialName').value = '';
                     document.getElementById('materialUnit').value = '';
                     
-                    // Recarregar lista de materiais
                     loadMaterials();
                 }
             } catch (error) {
@@ -967,8 +1021,6 @@
                     showNotification(data.error, true);
                 } else {
                     showNotification('Material excluído com sucesso');
-                    
-                    // Recarregar lista de materiais
                     loadMaterials();
                 }
             } catch (error) {

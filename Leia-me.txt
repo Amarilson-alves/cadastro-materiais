@@ -1,0 +1,30 @@
+# Controle de Materiais – MVP (Web)
+
+MVP estático composto por três páginas:
+
+- **index.html**: landing com navegação para os dois perfis de acesso. :contentReference[oaicite:0]{index=0}
+- **campo.html**: fluxo do técnico (Cadastro de Obra + seleção de Materiais por categoria). Integra com Apps Script para listar materiais e salvar obras. :contentReference[oaicite:1]{index=1}
+- **interno.html**: área administrativa (consulta de obras com filtros locais + exportação; CRUD básico de materiais com Apps Script). :contentReference[oaicite:2]{index=2}
+
+---
+
+## ✅ Status atual (testado)
+
+- **Campo (técnicos)**  
+  - Carrega materiais por **categoria** (Interno/Externo).  
+  - Seleção como "botões", destaque de selecionados, **quantidade editável**, remoção.  
+  - **Validação** de campos obrigatórios.  
+  - **Salvar Obra** via `POST` (Apps Script `saveObra`).  
+  - Feedback visual (notificações, spinners).  
+  – URL do Web App armazenada como `#scriptUrl` **oculta** no HTML. :contentReference[oaicite:3]{index=3}
+
+- **Interno (admin)**  
+  - **Preload** de todas as obras (`getObras`) uma vez e **filtro local** por endereço, técnico, data pontual, intervalo e tipo de obra.  
+  - **Exportação** para CSV/XLS dos resultados filtrados.  
+  - **Listagem de materiais** (`getMaterials`) e **CRUD**: adicionar (`addMaterial`) e excluir (`deleteMaterial`).  
+  - Abas “Consultar Obras” / “Gerenciar Materiais” e notificações de status. :contentReference[oaicite:4]{index=4}
+
+---
+
+## 🗂️ Estrutura
+
